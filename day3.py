@@ -23,8 +23,6 @@ def search(data, find_most_common):
         matching_bit = find_most_common_value(data, column, flip=not find_most_common)
         data = [row for row in data if row[column] == matching_bit]
 
-        print([column, matching_bit, data])
-
         if len(data) == 1:
             return int(data[0], 2)
 
