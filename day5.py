@@ -21,9 +21,9 @@ def fill(line, board, fill_diagonals):
         dx = 1 if ex > sx else -1
         dy = 1 if ey > sy else -1
         while sx != ex and sy != ey:
-            board[sx,sy] +=1
+            board[sx,sy] += 1
             sx, sy = sx + dx, sy + dy
-        board[sx,sy] +=1
+        board[sx,sy] += 1
 
 def filled_board(lines, fill_diagonals = False):
     filled_board = defaultdict(lambda: 0)
