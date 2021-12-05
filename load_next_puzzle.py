@@ -1,6 +1,8 @@
 from sys import argv
 from time import sleep
 from datetime import datetime, timedelta, timezone
+from typing import Optional
+import bs4
 import requests
 import webbrowser
 
@@ -15,9 +17,12 @@ SLEEP_CUTOFF_SECONDS = 5
 def log(message):
     print(f"{datetime.now().strftime('%H:%M:%S')} -- {message}")
 
-def check_puzzle_available() -> bool:
+def attempt_load_puzzle() -> Optional[str]:
     response = requests.get(base_url)
-    return response.status_code == 200
+    if response.status_code == 200:
+        soup = bs4.BeautifulSoup(response.text, 'html.parser')
+        return soup.select_one("code").get_text().strip()
+    return None
 
 def load_input_data():
     response = requests.get(input_url, cookies={"session": session_token})
@@ -45,9 +50,12 @@ while (time_to_go := time_until_puzzle_available()).total_seconds() > SLEEP_CUTO
     sleep(sleep_time)
 
 log("Checking if site is available...")
-while not check_puzzle_available():
+while not (sample_input := attempt_load_puzzle()):
     log(f"Task not yet available, checking again in 5s")
     sleep(5)
+
+with open(f"day{day}.sample.input", "w") as f:
+    f.write(sample_input)
 
 log("Task is available, loading input data & opening the page")
 load_input_data()
