@@ -1,10 +1,11 @@
 from sys import argv
-from time import sleep
+from time import sleep, strftime, gmtime
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 import bs4
 import requests
 import webbrowser
+import tqdm
 
 year = int(argv[1])
 day = int(argv[2])
@@ -31,25 +32,25 @@ def load_input_data():
     with open(f"day{day}.input", "w") as f:
         f.write(response.text)
 
-def time_until_puzzle_available() -> timedelta:
+def time_until_puzzle_available() -> float:
     target_time = datetime(year, 12, day, hour=5, tzinfo=timezone.utc)
     now = datetime.now(tz=timezone.utc)
 
-    return max(target_time - now, timedelta(seconds=0))
+    return max(target_time - now, timedelta(seconds=0)).total_seconds()
 
-def get_sleep_time(time_to_go):
-    if time_to_go.total_seconds() > 3600:
-        return 120
-    if time_to_go.total_seconds() > 600:
-        return 30
-    return min(5, time_to_go.total_seconds() - SLEEP_CUTOFF_SECONDS)
+def format_timedelta(seconds):
+    return strftime('%H:%M:%S', gmtime(seconds))
 
-while (time_to_go := time_until_puzzle_available()).total_seconds() > SLEEP_CUTOFF_SECONDS:
-    sleep_time = get_sleep_time(time_to_go)
-    log(f"sleeping {sleep_time}s, {str(time_to_go).split('.')[0]} to go")
-    sleep(sleep_time)
+seconds_to_go = time_until_puzzle_available()
+if seconds_to_go > 0:
+    with tqdm.tqdm(total=seconds_to_go, bar_format="{desc}|{bar}|{percentage:3.0f}%") as t:
+        while (seconds_to_go := time_until_puzzle_available()) > SLEEP_CUTOFF_SECONDS:
+            t.set_description(f"{format_timedelta(seconds_to_go)} to go")
+            t.update()
+            sleep(1)
 
-log("Checking if site is available...")
+log("Waiting until site is available...")
+
 while not (sample_input := attempt_load_puzzle()):
     log(f"Task not yet available, checking again in 5s")
     sleep(5)
