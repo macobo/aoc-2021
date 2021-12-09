@@ -1,12 +1,8 @@
-from itertools import *
-from collections import *
-from functools import *
-from more_itertools import *
-from tqdm import trange, tqdm
+from itertools import product
+from collections import deque, Counter
 
-heightmap = list(map(lambda line: list(map(int, line.strip())), open("day9.input").readlines()))
+heightmap = [list(map(int, line.strip())) for line in open("day9.input").readlines()]
 height, width = len(heightmap), len(heightmap[0])
-
 
 def neighbors(x, y):
     if x > 0:
@@ -24,34 +20,21 @@ def lowpoints(heightmap):
             yield heightmap[x][y] + 1, x, y
 
 def find_basins(heightmap):
-    filled_basins = defaultdict(lambda: -1)
-    basin_size = Counter()
-    visited = set()
     q = deque([(x, y, i) for i, (_, x, y) in enumerate(lowpoints(heightmap))])
+    visited = set((x, y) for x, y, _ in q)
+    basin_size = Counter([i for _, _, i in q])
 
-    for x, y, i in q:
-        visited.add((x, y))
-        basin_size[i] = 1
-        filled_basins[x,y] = i
-    # print(q)
     while len(q) > 0:
         x, y, i = q.popleft()
 
         for nx, ny in neighbors(x, y):
-            if (nx, ny) not in visited and heightmap[nx][ny] < 9: #and all(heightmap[px][py] > heightmap[nx][ny] for px, py in neighbors(nx, ny) if filled_basins[px, py] != i) and heightmap[nx][ny] < 9:
+            if (nx, ny) not in visited and heightmap[nx][ny] < 9:
                 q.append((nx, ny, i))
                 visited.add((nx, ny))
                 basin_size[i] += 1
-                filled_basins[nx, ny] = i
-    print(sorted(basin_size.values()))
-    # print(filled_basins)
-    (_, a), (_, b), (_, c) = basin_size.most_common(3)
-    print_map(filled_basins)
-    return a * b * c
 
-def print_map(filled_basins):
-    for x in range(height):
-        print(''.join('_' if filled_basins[x,y] == -1 else 'o' for y in range(width)))
+    a, b, c = [value for _, value in basin_size.most_common(3)]
+    return a * b * c
 
 print(f"Part 1: {sum(s for s, x, y in lowpoints(heightmap))}")
 print(f"Part 2: {find_basins(heightmap)}")
