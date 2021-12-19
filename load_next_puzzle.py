@@ -29,7 +29,7 @@ def load_input_data():
     response = requests.get(input_url, cookies={"session": session_token})
     assert response.status_code == 200, f"Session likely isn't valid - check session.txt. {response.__dict__}"
 
-    with open(f"day{day}.input", "w") as f:
+    with open(f"{year}/day{day}.input", "w") as f:
         f.write(response.text)
 
 def time_until_puzzle_available() -> float:
@@ -55,7 +55,7 @@ while not (sample_input := attempt_load_puzzle()):
     log(f"Task not yet available, checking again in 5s")
     sleep(5)
 
-with open(f"day{day}.sample.input", "w") as f:
+with open(f"{year}/day{day}.sample.input", "w") as f:
     f.write(sample_input)
 
 log("Task is available, loading input data & opening the page")
